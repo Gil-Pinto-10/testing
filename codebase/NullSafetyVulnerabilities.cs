@@ -1,7 +1,7 @@
 // NullSafetyVulnerabilities.cs
 using Microsoft.AspNetCore.Mvc; // Required for [FromServices] if you use DI for logger
 
-namespace MyTestWebService.Vulnerabilities4
+namespace MyTestWebService.Vulnerabilities
 {
     public static class NullSafetyVulnerabilities
     {

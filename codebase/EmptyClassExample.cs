@@ -1,5 +1,5 @@
 // EmptyClassExample.cs
-namespace MyTestWebService.Vulnerabilities3
+namespace MyTestWebService.Vulnerabilities
 {
     // S2094: Remove this empty class
     // S1118: Add a 'private' constructor or ensure the class is 'static'

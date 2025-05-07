@@ -1,5 +1,5 @@
 // CredentialVulnerabilities.cs
-namespace MyTestWebService.Vulnerabilities2
+namespace MyTestWebService.Vulnerabilities
 {
     public static class CredentialVulnerabilities
     {
