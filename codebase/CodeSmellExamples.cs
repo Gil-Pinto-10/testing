@@ -1,5 +1,5 @@
 // CodeSmellExamples.cs
-namespace MyTestWebService.Vulnerabilities
+namespace MyTestWebService.Vulnerabilities1
 {
     public static class CodeSmellExamples
     {

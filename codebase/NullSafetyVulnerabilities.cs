@@ -1,7 +1,7 @@
 // NullSafetyVulnerabilities.cs
 using Microsoft.AspNetCore.Mvc; // Required for [FromServices] if you use DI for logger
 
-namespace MyTestWebService.Vulnerabilities
+namespace MyTestWebService.Vulnerabilities4
 {
     public static class NullSafetyVulnerabilities
     {
@@ -35,16 +35,21 @@ namespace MyTestWebService.Vulnerabilities
 
         public static void MapEndpoints(WebApplication app)
         {
-            app.MapGet("/welcome-modular/{name?}", (string? name, [FromServices] ILoggerFactory loggerFactory) => {
+            app.MapGet("/welcome-modular/{name?}", async context => {
+                var loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
                 var logger = loggerFactory.CreateLogger("NullSafetyVulnerabilities");
+                var name = context.Request.RouteValues["name"] as string;
+
                 try
                 {
-                    return GetWelcomeMessage(name, logger);
+                    var message = GetWelcomeMessage(name, logger);
+                    await context.Response.WriteAsync(message);
                 }
                 catch (NullReferenceException ex)
                 {
                     logger.LogError(ex, "A null reference occurred in modular welcome.");
-                    return Results.Problem("An error occurred due to a null value in modular welcome.", statusCode: 500);
+                    context.Response.StatusCode = 500;
+                    await context.Response.WriteAsync("An error occurred due to a null value in modular welcome.");
                 }
             });
         }
