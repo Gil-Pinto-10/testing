@@ -35,17 +35,17 @@ jobs:
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
-mkdir -p .sonar/scanner
-dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
+          mkdir -p .sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-./.sonar/scanner/dotnet-sonarscanner begin \
-  /k:"Gil-Pinto-10_testing" \
-  /o:"gil-pinto-10" \
-  /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-  /d:sonar.host.url="https://sonarcloud.io"
+          ./.sonar/scanner/dotnet-sonarscanner begin \
+            /k:"Gil-Pinto-10_testing" \
+            /o:"gil-pinto-10" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io"
           dotnet build
-./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
