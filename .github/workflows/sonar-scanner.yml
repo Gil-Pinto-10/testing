@@ -26,7 +26,8 @@ jobs:
         run: |
           dotnet-sonarscanner begin /k:"my-csharp-app-vulnerable-test" \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.host.url="http://localhost:9000"
+            /d:sonar.host.url="http://localhost:9000" \
+            /d:sonar.inclusions=**/*.cs
           dotnet build VulnerableWebApi/VulnerableWebApi.csproj
 
       - name: End SonarQube Analysis
