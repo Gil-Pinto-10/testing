@@ -1,7 +1,10 @@
 name: SAST Scan with SonarQube and DefectDojo
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   sast:
@@ -10,35 +13,45 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      #- name: Setup .NET
-       # uses: actions/setup-dotnet@v3
-        #with:
-         # dotnet-version: '9.0.x'
+      - name: Skip setup-dotnet (already installed)
+        run: dotnet --info
 
       - name: Install SonarScanner for MSBuild
         run: |
           dotnet tool install --global dotnet-sonarscanner
-          export PATH="$PATH:$HOME/.dotnet/tools"
+          echo "DOTNET_TOOLS path: $HOME/.dotnet/tools"
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
-      - name: Start SonarQube Scan
+      - name: Begin SonarQube Analysis
         run: |
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet-sonarscanner begin /k:"my-csharp-app" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="http://localhost:9000"
-          dotnet build VulnerableWebApi/VulnerableWebApi.csproj
+          dotnet-sonarscanner begin /k:"my-csharp-app" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="http://localhost:9000"
+          dotnet build
+
+      - name: End SonarQube Analysis
+        run: |
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
-      - name: Convert Sonar Report to SARIF (optional)
+      - name: Export SonarQube Scan to JSON
         run: |
-          # Optional: Convert or extract SARIF if needed by DefectDojo
-          echo "No-op if Sonar SARIF is not required"
+          curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
+            "http://localhost:9000/api/issues/search?componentKeys=my-csharp-app&resolved=false" \
+            -o sonar-report.json
+
+      - name: Zip JSON for DefectDojo Upload
+        run: |
+          zip sonar-report.zip sonar-report.json
 
       - name: Upload to DefectDojo
         run: |
           curl -k -X POST "http://localhost:8080/api/v2/import-scan/" \
             -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
-            -F "scan_type=SonarQube Scan" \
-            -F "file=@path/to/report.zip" \
+            -F "scan_type=Generic Findings Import" \
+            -F "file=@sonar-report.zip" \
             -F "engagement=1" \
             -F "minimum_severity=Low" \
             -F "active=true" \
