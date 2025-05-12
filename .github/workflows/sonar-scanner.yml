@@ -39,16 +39,16 @@ jobs:
             "http://localhost:9000/api/issues/search?componentKeys=my-csharp-app&resolved=false" \
             -o sonar-report.json
 
-      - name: Zip JSON for DefectDojo Upload
-        run: |
-          zip sonar-report.zip sonar-report.json
+     # - name: Zip JSON for DefectDojo Upload
+      #  run: |
+       #   zip sonar-report.zip sonar-report.json
 
       - name: Upload to DefectDojo
         run: |
           curl -k -X POST "http://localhost:8080/api/v2/import-scan/" \
             -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
             -F "scan_type=Generic Findings Import" \
-            -F "file=@sonar-report.zip" \
+            -F "file=@sonar-report.json" \
             -F "engagement=1" \
             -F "minimum_severity=Low" \
             -F "active=true" \
