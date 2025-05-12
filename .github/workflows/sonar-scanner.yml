@@ -25,7 +25,7 @@ jobs:
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet-sonarscanner begin /k:"my-csharp-app" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="http://localhost:9000"
-          dotnet build
+          dotnet build VulnerableWebApi/VulnerableWebApi.csproj
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
       - name: Convert Sonar Report to SARIF (optional)
