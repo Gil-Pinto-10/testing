@@ -1,48 +1,54 @@
-using System;
-using System.IO;
 using VulnerableWebApi.Models;
+using System.Data.SqlClient;
+using System.Security.Cryptography;
+using System.Text;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
-namespace VulnerableWebApi.Services
+public class UserService
 {
-    public class UserService
+    private readonly List<User> _users = new()
     {
-        private readonly DataAccess _dataAccess;
+        new User { Id = 1, Username = "admin", Password = "1234" },
+        new User { Id = 2, Username = "user", Password = "password" }
+    };
 
-        // Constructor for dependency injection if you register DataAccess as a service
-        public UserService(DataAccess dataAccess)
+    public User? GetByUsernameUnsafe(string username)
+    {
+        // SQL Injection
+        string query = $"SELECT * FROM Users WHERE Username = '{username}'";
+        Console.WriteLine("Executing: " + query); // log sensitive input
+        return _users.FirstOrDefault(u => u.Username == username);
+    }
+
+    public void LogCredentials(string username, string password)
+    {
+        // Insecure logging
+        Console.WriteLine($"LOGIN => User: {username}, Password: {password}");
+    }
+
+    public string WeakHash(string input)
+    {
+        // Weak cryptography
+        using var md5 = MD5.Create();
+        byte[] inputBytes = Encoding.ASCII.GetBytes(input);
+        byte[] hashBytes = md5.ComputeHash(inputBytes);
+        return Convert.ToHexString(hashBytes);
+    }
+
+    public void SwallowException()
+    {
+        try
         {
-            _dataAccess = dataAccess;
+            int.Parse("not-an-int");
         }
+        catch { } // bad: exception swallowed
+    }
 
-        public User RetrieveUser(string username)
-        {
-            return _dataAccess.GetUserByUsername_Vulnerable(username);
-        }
-
-        public User GetUserById(int id)
-        {
-            return _dataAccess.GetUserById(id);
-        }
-
-
-        public bool CheckAdminAccess(string apiKey)
-        {
-            return !string.IsNullOrEmpty(apiKey) && apiKey == SensitiveConfig.AdminApiKey;
-        }
-
-        public string GetUserEmail(User user)
-        {
-            // VULNERABILITY: Potential Null Dereference
-            return user.Email; // Will throw if 'user' is null
-        }
-
-        public void LogActivity_Vulnerable(string message)
-        {
-            // VULNERABILITY: Resource Leak
-            StreamWriter logFile = new StreamWriter("api_activity.log", append: true);
-            logFile.WriteLine($"{DateTime.UtcNow}: {message}");
-            // Missing: logFile.Close(); logFile.Dispose(); or using statement
-            Console.WriteLine($"Logged to api_activity.log (resource leak): {message}");
-        }
+    public void UnusedMethod()
+    {
+        // should be flagged as dead code
+        Console.WriteLine("I do nothing.");
     }
 }
